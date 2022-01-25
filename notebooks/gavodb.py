@@ -225,3 +225,61 @@ class DBManager():
             Value of product
         """
         return self.get_property_in_xml(xmlfile, string_in_prop, 'value')
+
+#--------- gabolv_features ---------#
+
+    def get_db_table_columns_names(self, table_name):
+        """
+        Get table from db
+
+        Parameters
+        ----------
+        table_name: str
+            Name of table in DB
+        columns: list
+            Columns to extract from table
+
+        Returns
+        -------
+        numpy array
+            2D Array in column order
+        """
+        self.connect_to_production()
+        query = 'select * from %s limit 1'%(table_name)
+        stm = sqlalchemy.sql.text(query)
+        columns_names = self.conn.execute(stm).keys()
+        
+        return columns_names
+    
+    def get_db_table_new(self, table_name, columns, limit = False):
+        """
+        Get table from db
+
+        Parameters
+        ----------
+        table_name: str
+            Name of table in DB
+        columns: list
+            Columns to extract from table
+
+        Returns
+        -------
+        numpy array
+            2D Array in column order
+        """
+        self.connect_to_production()
+        
+        if limit:
+            query = 'select %s from %s limit %s'%(', '.join(columns), table_name, limit)
+        
+        else:
+            query = 'select %s from %s'%(', '.join(columns), table_name)
+        
+        return np.transpose(
+                    self.conn.execute(
+                        sqlalchemy.sql.text(
+                            query
+                )
+            ).fetchall()
+        )
+            
