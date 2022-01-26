@@ -170,7 +170,7 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
              color_cut=0.3, dmag=1.5):
     
     p = plt.subplot(1,3,panel)
-    plt.title('%s (%d gals)'%(title, len(x)), fontsize=14) 
+    plt.title('%s (%d gals) '%(title, len(x)))#, fontsize=12) 
     #plt.hexbin(x, y, C=C, gridsize=250, mincnt=1, cmap='rainbow')
     plt.hist2d(x, y, bins=bins, range=plot_range, weights=weights, cmin=cmin, cmax=cmax, cmap='rainbow')
     cbar = plt.colorbar()
@@ -179,14 +179,15 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
         cbar.set_label('density', size=12)
     plt.xlim(plot_range[0])
     plt.ylim(plot_range[1])
-    plt.xlabel(x_label, fontsize=16)
-    plt.ylabel(y_label, fontsize=16)
-    plt.xticks(fontsize=12)
-    plt.yticks(fontsize=12)
+    plt.xlabel(x_label)#, fontsize=12)
+    plt.ylabel(y_label)#, fontsize=12)
+    plt.xticks()#fontsize=12)
+    plt.yticks()#fontsize=12)
     tx = (min(plot_range[0])+(max(plot_range[0])-min(plot_range[0]))*0.05)
     ty = (min(plot_range[1])+(max(plot_range[1])-min(plot_range[1]))*0.9)
     ttext='%.2f < z < %.2f'%(z_range[0], z_range[1])
-    plt.text(tx, ty, ttext, fontsize=14)
+    plt.text(tx, ty, ttext, fontsize=12)
+    plt.grid(True)
 
     z = round((max(z_range)+min(z_range))/2., 2)
     plt.vlines(istar_dic[z], -5, 5, linestyles='dotted')    
@@ -202,7 +203,7 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     y2 = a1*xfit1 + b2
     plt.plot(xfit1, y2, 'k--', lw=0.8)
            
-    #plt.hlines(color_cut, -50, 50, linestyles='dashed', lw=0.8)
+    plt.hlines(color_cut, -50, 50, linestyles='dashed', lw=0.8)
     
     
     
@@ -215,7 +216,7 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     
     mags, colors, a, b, xfit, yfit, counts = redseq_fit(x[mask_red2], y[mask_red2], z, color_cut=color_cut, istar_dic=istar_dic)
     
-    plt.text(tx, ty, ttext, fontsize=14)
+    plt.text(tx, ty, ttext)#, fontsize=12)
         
      
     plt.plot(mags[(counts>50)&(mags<istar_dic[z]+dmag)], colors[(counts>50)&(mags<istar_dic[z]+dmag)], 'ro')
@@ -224,7 +225,7 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     tx = (min(plot_range[0])+(max(plot_range[0])-min(plot_range[0]))*0.05)
     ty = (min(plot_range[1])+(max(plot_range[1])-min(plot_range[1]))*0.04)
     ttext='red seq. slope: %.2f'%a 
-    plt.text(tx, ty, ttext, fontsize=14)
+    plt.text(tx, ty, ttext)#, fontsize=12)
     red_slope = a
                 
                 
@@ -238,7 +239,7 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     tx = (min(plot_range[0])+(max(plot_range[0])-min(plot_range[0]))*0.05)
     ty = (min(plot_range[1])+(max(plot_range[1])-min(plot_range[1]))*0.12)
     ttext='red fraction: %.2f'%red_frac 
-    plt.text(tx, ty, ttext, fontsize=14)
+    plt.text(tx, ty, ttext)#, fontsize=12)
 
         
     return p, red_frac, red_slope
@@ -247,7 +248,7 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
 
 def plot_loop(vacs, x, y, z_low, z_up, color_cut, x_range, y_range, titles, istar_dic=False):
     #-------------------------------------------------#
-    plt.figure(dpi=300,figsize=[16,4])    
+    plt.figure(figsize=[16,5])    
     #-------------------------------------------------#
     for j, df in enumerate(vacs):
         mask = ((df['z_best']>z_low)&(df['z_best']<=z_up)&
@@ -256,7 +257,7 @@ def plot_loop(vacs, x, y, z_low, z_up, color_cut, x_range, y_range, titles, ista
         try:
             p, red_frac, red_slope = cmd_plot(df[x][mask], df[y][mask], panel=j+1, istar_dic=istar_dic, bins=[100,100], #delta_x*15.,delta_y*50.], 
                              plot_range=[x_range,y_range], weights=None, cmin=1, cmax=None, z_range=(z_low,z_up), title=titles[j], 
-                             x_label=x, y_label=y, color_cut=color_cut, dmag=1.5)
+                             x_label='mag i', y_label=y, color_cut=color_cut, dmag=1.5)
             if j == 0: 
                 frac[np.mean([z_low,z_up])] = red_frac
                 slope[np.mean([z_low,z_up])] = red_slope
@@ -264,9 +265,6 @@ def plot_loop(vacs, x, y, z_low, z_up, color_cut, x_range, y_range, titles, ista
         except:
             pass
             #print('plot fail')
-
-   
-        
 
     #-------------------------------------------------#
 
