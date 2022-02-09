@@ -50,7 +50,7 @@ def get_vac(pid='6607',
     conn = engine.connect()
      
     table_name = f"vac_{vac_schema}.catalog_{pid}"    
-    columns=['coadd_objects_id', 'ra', 'dec', 'hpix_4096', 'z_best', 'err_z']
+    columns=['source','coadd_objects_id', 'ra', 'dec', 'hpix_4096', 'z_best', 'err_z']
     for band in bands:
         columns.append(f"mag_{band}")
         columns.append(f"magerr_{band}")
@@ -164,10 +164,11 @@ def redseq_fit(x, y, z, color_cut=0.3, mag_bins=np.arange(14,28,0.5), istar_dic=
     
     return mags, colors, a, b, xfit, yfit, counts 
     
-    
+
+#istar_dic??    
 def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None, cmin=1, cmax=None, 
-             z_range=(0.0,0.1), title='', x_label='', y_label='', panel=1, istar_dic=False, 
-             color_cut=0.3, dmag=1.5):
+             z_range=(0.0,0.1), title='', x_label='', y_label='', panel=1, istar_dic=True, 
+             color_cut=0.65, dmag=1.5):
     
     p = plt.subplot(1,3,panel)
     plt.title('%s (%d gals) '%(title, len(x)))#, fontsize=12) 
@@ -190,8 +191,8 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     plt.grid(True)
 
     z = round((max(z_range)+min(z_range))/2., 2)
-    plt.vlines(istar_dic[z], -5, 5, linestyles='dotted')    
-    plt.vlines(istar_dic[z]+dmag, -5, 5, linestyles='dotted')    
+    plt.vlines(istar_dic[z], -1, 2, linestyles='dotted')    
+    plt.vlines(istar_dic[z]+dmag, -1, 2, linestyles='dotted')    
     
     # Red Sequence 
     mask_red = (y>=color_cut)&(x<(istar_dic[z]+dmag))
@@ -255,22 +256,24 @@ def plot_loop(vacs, x, y, z_low, z_up, color_cut, x_range, y_range, titles, ista
                 (df[x]>min(x_range))&(df[x]<max(x_range))&
                 (df[y]>min(y_range))&(df[y]<max(y_range)))
         try:
-            p, red_frac, red_slope = cmd_plot(df[x][mask], df[y][mask], panel=j+1, istar_dic=istar_dic, bins=[100,100], #delta_x*15.,delta_y*50.], 
-                             plot_range=[x_range,y_range], weights=None, cmin=1, cmax=None, z_range=(z_low,z_up), title=titles[j], 
-                             x_label='mag i', y_label=y, color_cut=color_cut, dmag=1.5)
+            p, red_frac, red_slope = cmd_plot(df[x][mask], df[y][mask], panel=j+1, istar_dic=istar_dic, bins=[100,100], plot_range=[x_range,y_range], weights=None, cmin=1, cmax=None, z_range=(z_low,z_up), title=titles[j], x_label=x, y_label=y, color_cut=color_cut, dmag=1.5)
             if j == 0: 
                 frac[np.mean([z_low,z_up])] = red_frac
                 slope[np.mean([z_low,z_up])] = red_slope
         
         except:
             pass
-            #print('plot fail')
+            print('plot fail')
 
     #-------------------------------------------------#
 
     plt.tight_layout()
     
-    
-    
+
+
+   
+
+
+
     
     
