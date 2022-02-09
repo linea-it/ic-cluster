@@ -251,7 +251,7 @@ class DBManager():
         
         return columns_names
     
-    def get_db_table_new(self, table_name, columns, limit = False):
+    def get_db_table_new(self, table_name, columns, limit = False, indexs = None, column_indexs_name = None):
         """
         Get table from db
 
@@ -269,9 +269,16 @@ class DBManager():
         """
         self.connect_to_production()
         
-        if limit:
+        if indexs is not None:
+            sorting_indexs = '('+','.join(str(each) for each in indexs)+')'
+            print('Query ready to start!')
+            query = 'select %s from %s where %s in %s '%(', '.join(columns),
+                                                         table_name,
+                                                         column_indexs_name,
+                                                         sorting_indexs)
+            
+        elif limit:
             query = 'select %s from %s limit %s'%(', '.join(columns), table_name, limit)
-        
         else:
             query = 'select %s from %s'%(', '.join(columns), table_name)
         
