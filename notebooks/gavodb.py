@@ -251,7 +251,9 @@ class DBManager():
         
         return columns_names
     
-    def get_db_table_new(self, table_name, columns, limit = False, indexs = None, column_indexs_name = None):
+    def get_db_table_new(self, table_name, columns,
+                         limit = False, indexs = None, column_indexs_name = None,
+                        footprint_table_name = None, sorting_column = None):
         """
         Get table from db
 
@@ -269,7 +271,10 @@ class DBManager():
         """
         self.connect_to_production()
         
-        if indexs is not None:
+        if footprint_table_name is not None:
+            query = "select a.%s from %s a inner join %s b on a.%s = b.%s"%(', a.'.join(columns),table_name,footprint_table_name, sorting_column, sorting_column)
+            print(query,'\n')
+        elif indexs is not None:
             sorting_indexs = '('+','.join(str(each) for each in indexs)+')'
             print('Query ready to start!')
             query = 'select %s from %s where %s in %s '%(', '.join(columns),
