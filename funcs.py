@@ -121,8 +121,6 @@ def plot_dist_surveys(n_obj_train, train_set_table, ra2, foot_ra, foot_dec):
             pl.xlim(180,-180)
             pl.tight_layout()
             
- 
-
 def find_green_valley(x, y, mag_bins=np.arange(14,28,0.5)):
     green_valley = np.zeros_like(mag_bins)
     
@@ -164,10 +162,8 @@ def redseq_fit(x, y, z, color_cut=0.3, mag_bins=np.arange(14,28,0.5), istar_dic=
     
     return mags, colors, a, b, xfit, yfit, counts 
     
-
-#istar_dic??    
 def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None, cmin=1, cmax=None, 
-             z_range=(0.0,0.1), title='', x_label='', y_label='', panel=1, istar_dic=True, 
+             z_range=(0.0,0.1), title='', x_label='', y_label='', panel=1, istar_dic=False, 
              color_cut=0.65, dmag=1.5):
     
     p = plt.subplot(1,3,panel)
@@ -184,10 +180,10 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     plt.ylabel(y_label)#, fontsize=12)
     plt.xticks()#fontsize=12)
     plt.yticks()#fontsize=12)
-    tx = (min(plot_range[0])+(max(plot_range[0])-min(plot_range[0]))*0.05)
-    ty = (min(plot_range[1])+(max(plot_range[1])-min(plot_range[1]))*0.9)
-    ttext='%.2f < z < %.2f'%(z_range[0], z_range[1])
-    plt.text(tx, ty, ttext, fontsize=12)
+    #tx = (min(plot_range[0])+(max(plot_range[0])-min(plot_range[0]))*0.05)
+    #ty = (min(plot_range[1])+(max(plot_range[1])-min(plot_range[1]))*0.9)
+    #ttext='%.2f < z < %.2f'%(z_range[0], z_range[1])
+    #plt.text(tx, ty, ttext, fontsize=12)
     plt.grid(True)
 
     z = round((max(z_range)+min(z_range))/2., 2)
@@ -204,8 +200,7 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     y2 = a1*xfit1 + b2
     plt.plot(xfit1, y2, 'k--', lw=0.8)
            
-    plt.hlines(color_cut, -50, 50, linestyles='dashed', lw=0.8)
-    
+    #plt.hlines(color_cut, -50, 50, linestyles='dashed', lw=0.8)
     
     
     mask_red2 = (y>=((a1*x)+b2))#&(x<(istar_dic[z]+dmag))
@@ -217,16 +212,16 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     
     mags, colors, a, b, xfit, yfit, counts = redseq_fit(x[mask_red2], y[mask_red2], z, color_cut=color_cut, istar_dic=istar_dic)
     
-    plt.text(tx, ty, ttext)#, fontsize=12)
+    #plt.text(tx, ty, ttext)#, fontsize=12)
         
      
-    plt.plot(mags[(counts>50)&(mags<istar_dic[z]+dmag)], colors[(counts>50)&(mags<istar_dic[z]+dmag)], 'ro')
+    plt.plot(mags[(counts>50)&(mags<istar_dic[z]+dmag)], colors[(counts>50)&(mags<istar_dic[z]+dmag)], 'r-')
     
     plt.plot(xfit, yfit, 'r-', lw=1.5)
     tx = (min(plot_range[0])+(max(plot_range[0])-min(plot_range[0]))*0.05)
     ty = (min(plot_range[1])+(max(plot_range[1])-min(plot_range[1]))*0.04)
     ttext='red seq. slope: %.2f'%a 
-    plt.text(tx, ty, ttext)#, fontsize=12)
+    plt.text(tx, ty, ttext), fontsize=10)
     red_slope = a
                 
                 
@@ -240,7 +235,7 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     tx = (min(plot_range[0])+(max(plot_range[0])-min(plot_range[0]))*0.05)
     ty = (min(plot_range[1])+(max(plot_range[1])-min(plot_range[1]))*0.12)
     ttext='red fraction: %.2f'%red_frac 
-    plt.text(tx, ty, ttext)#, fontsize=12)
+    plt.text(tx, ty, ttext, fontsize=10)
 
         
     return p, red_frac, red_slope
@@ -269,7 +264,48 @@ def plot_loop(vacs, x, y, z_low, z_up, color_cut, x_range, y_range, titles, ista
 
     plt.tight_layout()
     
+    
+def CC(mag1, mag2, mag3, mag4, name_mag1, name_mag2, name_mag3, name_mag4, maglim, mode):
+    f, ((ax1, ax2)) = plt.subplots(1, 2, figsize=(8, 8), dpi=150)
+    bright = (mag1 <= maglim)
+    mag1 = mag1[bright]
+    mag2 = mag2[bright]
+    mag3 = mag3[bright]
+    mag4 = mag4[bright]
+    x = mag1-mag2
+    y = mag2-mag3
+    z = mag3-mag4
+    
+    H, xedges, yedges = np.histogram2d(x, y, bins=200, range=[[-1, 2.2],[-1,2.2]])
+    ax1.set_title(f'CCD ({name_mag1} - {name_mag2} x {name_mag2} - {name_mag3})', fontsize=10)
+    ax1.set_xlim([-1, 2.2])
+    ax1.set_ylim([-1, 2.2])
+    ax1.set_xlabel(f'{name_mag1} - {name_mag2}')#, fontsize=8)
+    ax1.set_ylabel(f'{name_mag2} - {name_mag3}')#, fontsize=10)
+    ax1.grid(True, lw=0.2)
+    if (mode=='log'):
+        H[H == 0] = 0.1
+        im1 = ax1.imshow(np.flipud(H.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r')#, norm=LogNorm(vmin=np.min(H), vmax=np.max(H)))
+    else:
+        im1 = ax1.imshow(np.flipud(H.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r', vmin=np.min(H), vmax=np.max(H))
 
+    G, xedges, yedges = np.histogram2d(y, z, bins=200, range=[[-1, 2.2],[-1,2.2]])
+    ax2.set_title(f'CCD ({name_mag2} - {name_mag3} x {name_mag3} - {name_mag4})', fontsize=10)
+    ax2.set_xlim([-1, 2.2])
+    ax2.set_ylim([-1, 2.2]) 
+    ax2.set_xlabel(f'{name_mag2} - {name_mag3}')#, fontsize=10)
+    ax2.set_ylabel(f'{name_mag3} - {name_mag4}')#, fontsize=10)
+    ax2.grid(True, lw=0.2)
+    if (mode=='log'):
+        G[G == 0] = 0.1
+        im2 = ax2.imshow(np.flipud(G.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r')#, norm=LogNorm(vmin=np.min(H), vmax=np.max(H)))
+    else:
+        im2 = ax2.imshow(np.flipud(G.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r', vmin=np.min(H), vmax=np.max(H))
+
+    cbaxes = f.add_axes([1.0, 0.3, 0.015, 0.4])
+    cbar = f.colorbar(im1, cax=cbaxes, cmap='gist_ncar_r', orientation='vertical')
+    plt.tight_layout()
+    del(mag1, mag2, mag3, mag4, name_mag1, name_mag2, name_mag3, name_mag4, mode, maglim)
 
    
 
