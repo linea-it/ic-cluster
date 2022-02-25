@@ -1,18 +1,22 @@
-#cópia de algumas funções de QA_notebooks/utils
+#______________________________________________________________________________#
 
+#Funções para pegar os dados do VAC e para os diagramas cor-magnitude e cor-cor#
+#______________________________________________________________________________#
+
+
+import numpy as np 
+import matplotlib.pyplot as plt
+from scipy.stats import gaussian_kde, linregress
 import os
-import numpy as np
 import healpy as hp
 from astropy.table import Table
 from collections import OrderedDict
 #from gavodb import DBManager
-import sqlalchemy
+import sqlalchemy 
 import pylab as pl
 import seaborn as sns
 import pandas as pd
-sns.set(color_codes=True, font_scale=1.5) 
-import matplotlib.pyplot as plt
-from scipy.stats import gaussian_kde, linregress
+from matplotlib.colors import LogNorm
 
 def get_vac(pid='6607',
             vac_schema='vac_cluster', 
@@ -50,7 +54,7 @@ def get_vac(pid='6607',
     conn = engine.connect()
      
     table_name = f"vac_{vac_schema}.catalog_{pid}"    
-    columns=['source','coadd_objects_id', 'ra', 'dec', 'hpix_4096', 'z_best', 'err_z']
+    columns=['coadd_objects_id', 'ra', 'dec', 'hpix_4096', 'z_best', 'err_z']
     for band in bands:
         columns.append(f"mag_{band}")
         columns.append(f"magerr_{band}")
@@ -65,62 +69,6 @@ def get_vac(pid='6607',
 
 
 
-
-def plot_specz_spatial_dist(ra, dec, foot_ra, foot_dec, 
-                            projection='mollweide', cmap='viridis', 
-                            cbar_label='log(#spec-$z$/deg$^{2}$)'): 
-    """
-    Plot projected spatial density of spec-zs 
-    
-    Parameters
-    ----------
-    ra: numpy array 
-        Right ascention in sterradians
-    dec: numpy array 
-        Declination in sterradians
-    
-    """
-    
-    fig = pl.figure(figsize=[14,6], dpi=300)
-    ax = fig.add_subplot(111, projection=projection)   
-    pl.hexbin(ra, dec, None,  mincnt=1,
-              gridsize=[180,90], bins='log', cmap=cmap)
-    cbar = pl.colorbar()
-    cbar.ax.tick_params(labelsize=16)
-    cbar.set_label(cbar_label, size=16)
-    #pl.clim(0,3.8)
-    #pl.plot(-np.radians(foot_ra), np.radians(foot_dec), 'r-')
-    org=0.0
-    tick_labels = np.array([150, 120, 90, 60, 30, 0, 330, 300, 270, 240, 210])
-    tick_labels = np.remainder(tick_labels+360+org,360)
-    ax.set_xticklabels(tick_labels)     # we add the scale on the x axis
-    ax.set_xlabel("R.A.")
-    ax.xaxis.label.set_fontsize(14)
-    ax.set_ylabel("Dec.")
-    ax.yaxis.label.set_fontsize(14)
-    ax.grid(True)
-    pl.tight_layout()
-    #pl.savefig('specz_GOOD_%s_spatial_dist_mollweide.png'%version)
-    
-    
-def plot_dist_surveys(n_obj_train, train_set_table, ra2, foot_ra, foot_dec):
-    for survey in sorted(n_obj_train, key=n_obj_train.get, reverse=True):
-        if n_obj_train[survey] > 1000:
-            pl.figure(figsize=[14,4])
-            pl.subplot(121) 
-            sns.kdeplot(train_set_table['z'][train_set_table['source'] == survey], shade=True, 
-                    label=f'{survey.strip()}: {n_obj_train[survey]} objects')
-            pl.xlabel("spec-$z$", fontsize=13)
-            pl.ylabel("counts", fontsize=14)
-            pl.xlim(0,2.5)
-            pl.subplot(122)
-            pl.plot(ra2[train_set_table['source']  == survey], train_set_table['dec'][train_set_table['source']  == survey], '.')
-            pl.plot(foot_ra, foot_dec, 'k-')
-            pl.xlabel('R.A. (deg)')
-            pl.ylabel('Dec. (deg)')
-            pl.xlim(180,-180)
-            pl.tight_layout()
-            
 def find_green_valley(x, y, mag_bins=np.arange(14,28,0.5)):
     green_valley = np.zeros_like(mag_bins)
     
@@ -162,12 +110,13 @@ def redseq_fit(x, y, z, color_cut=0.3, mag_bins=np.arange(14,28,0.5), istar_dic=
     
     return mags, colors, a, b, xfit, yfit, counts 
     
+    
 def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None, cmin=1, cmax=None, 
              z_range=(0.0,0.1), title='', x_label='', y_label='', panel=1, istar_dic=False, 
-             color_cut=0.65, dmag=1.5):
+             color_cut=0.3, dmag=1.5):
     
     p = plt.subplot(1,3,panel)
-    plt.title('%s (%d gals) '%(title, len(x)))#, fontsize=12) 
+    plt.title('%s (%d gals)'%(title, len(x)), fontsize=14) 
     #plt.hexbin(x, y, C=C, gridsize=250, mincnt=1, cmap='rainbow')
     plt.hist2d(x, y, bins=bins, range=plot_range, weights=weights, cmin=cmin, cmax=cmax, cmap='rainbow')
     cbar = plt.colorbar()
@@ -176,19 +125,19 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
         cbar.set_label('density', size=12)
     plt.xlim(plot_range[0])
     plt.ylim(plot_range[1])
-    plt.xlabel(x_label)#, fontsize=12)
-    plt.ylabel(y_label)#, fontsize=12)
-    plt.xticks()#fontsize=12)
-    plt.yticks()#fontsize=12)
-    #tx = (min(plot_range[0])+(max(plot_range[0])-min(plot_range[0]))*0.05)
-    #ty = (min(plot_range[1])+(max(plot_range[1])-min(plot_range[1]))*0.9)
-    #ttext='%.2f < z < %.2f'%(z_range[0], z_range[1])
-    #plt.text(tx, ty, ttext, fontsize=12)
+    plt.xlabel(x_label, fontsize=16)
+    plt.ylabel(y_label, fontsize=16)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    tx = (min(plot_range[0])+(max(plot_range[0])-min(plot_range[0]))*0.05)
+    ty = (min(plot_range[1])+(max(plot_range[1])-min(plot_range[1]))*0.9)
+    ttext='%.2f < z < %.2f'%(z_range[0], z_range[1])
+    plt.text(tx, ty, ttext, fontsize=14)
     plt.grid(True)
 
     z = round((max(z_range)+min(z_range))/2., 2)
-    plt.vlines(istar_dic[z], -1, 2, linestyles='dotted')    
-    plt.vlines(istar_dic[z]+dmag, -1, 2, linestyles='dotted')    
+    plt.vlines(istar_dic[z], -5, 5, linestyles='dotted')    
+    plt.vlines(istar_dic[z]+dmag, -5, 5, linestyles='dotted')    
     
     # Red Sequence 
     mask_red = (y>=color_cut)&(x<(istar_dic[z]+dmag))
@@ -203,6 +152,7 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     #plt.hlines(color_cut, -50, 50, linestyles='dashed', lw=0.8)
     
     
+    
     mask_red2 = (y>=((a1*x)+b2))#&(x<(istar_dic[z]+dmag))
     #PAREI AQUI
     
@@ -212,16 +162,16 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     
     mags, colors, a, b, xfit, yfit, counts = redseq_fit(x[mask_red2], y[mask_red2], z, color_cut=color_cut, istar_dic=istar_dic)
     
-    #plt.text(tx, ty, ttext)#, fontsize=12)
+    plt.text(tx, ty, ttext, fontsize=10)
         
      
-    plt.plot(mags[(counts>50)&(mags<istar_dic[z]+dmag)], colors[(counts>50)&(mags<istar_dic[z]+dmag)], 'r-')
+    plt.plot(mags[(counts>50)&(mags<istar_dic[z]+dmag)], colors[(counts>50)&(mags<istar_dic[z]+dmag)], 'ro')
     
     plt.plot(xfit, yfit, 'r-', lw=1.5)
     tx = (min(plot_range[0])+(max(plot_range[0])-min(plot_range[0]))*0.05)
     ty = (min(plot_range[1])+(max(plot_range[1])-min(plot_range[1]))*0.04)
     ttext='red seq. slope: %.2f'%a 
-    plt.text(tx, ty, ttext), fontsize=10)
+    plt.text(tx, ty, ttext, fontsize=14)
     red_slope = a
                 
                 
@@ -235,7 +185,7 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
     tx = (min(plot_range[0])+(max(plot_range[0])-min(plot_range[0]))*0.05)
     ty = (min(plot_range[1])+(max(plot_range[1])-min(plot_range[1]))*0.12)
     ttext='red fraction: %.2f'%red_frac 
-    plt.text(tx, ty, ttext, fontsize=10)
+    plt.text(tx, ty, ttext, fontsize=14)
 
         
     return p, red_frac, red_slope
@@ -244,27 +194,27 @@ def cmd_plot(x, y, bins=[200,200], plot_range=[[16,23.2],[-1, 3]], weights=None,
 
 def plot_loop(vacs, x, y, z_low, z_up, color_cut, x_range, y_range, titles, istar_dic=False):
     #-------------------------------------------------#
-    plt.figure(figsize=[16,5])    
+    plt.figure(dpi=300,figsize=[16,4])    
     #-------------------------------------------------#
     for j, df in enumerate(vacs):
         mask = ((df['z_best']>z_low)&(df['z_best']<=z_up)&
                 (df[x]>min(x_range))&(df[x]<max(x_range))&
                 (df[y]>min(y_range))&(df[y]<max(y_range)))
         try:
-            p, red_frac, red_slope = cmd_plot(df[x][mask], df[y][mask], panel=j+1, istar_dic=istar_dic, bins=[100,100], plot_range=[x_range,y_range], weights=None, cmin=1, cmax=None, z_range=(z_low,z_up), title=titles[j], x_label=x, y_label=y, color_cut=color_cut, dmag=1.5)
+            p, red_frac, red_slope = cmd_plot(df[x][mask], df[y][mask], panel=j+1, istar_dic=istar_dic, bins=[100,100], #delta_x*15.,delta_y*50.], 
+                             plot_range=[x_range,y_range], weights=None, cmin=1, cmax=None, z_range=(z_low,z_up), title=titles[j], 
+                             x_label=x, y_label=y, color_cut=color_cut, dmag=1.5)
             if j == 0: 
                 frac[np.mean([z_low,z_up])] = red_frac
                 slope[np.mean([z_low,z_up])] = red_slope
         
         except:
             pass
-            print('plot fail')
-
+            #print('plot fail')
     #-------------------------------------------------#
 
     plt.tight_layout()
-    
-    
+
 def CC(mag1, mag2, mag3, mag4, name_mag1, name_mag2, name_mag3, name_mag4, maglim, mode):
     f, ((ax1, ax2)) = plt.subplots(1, 2, figsize=(8, 8), dpi=150)
     bright = (mag1 <= maglim)
@@ -280,11 +230,11 @@ def CC(mag1, mag2, mag3, mag4, name_mag1, name_mag2, name_mag3, name_mag4, magli
     ax1.set_title(f'CCD ({name_mag1} - {name_mag2} x {name_mag2} - {name_mag3})', fontsize=10)
     ax1.set_xlim([-1, 2.2])
     ax1.set_ylim([-1, 2.2])
-    ax1.set_xlabel(f'{name_mag1} - {name_mag2}')#, fontsize=8)
-    ax1.set_ylabel(f'{name_mag2} - {name_mag3}')#, fontsize=10)
+    ax1.set_xlabel(f'{name_mag1} - {name_mag2}', fontsize=10)
+    ax1.set_ylabel(f'{name_mag2} - {name_mag3}', fontsize=10)
     ax1.grid(True, lw=0.2)
     if (mode=='log'):
-        H[H == 0] = 0.1
+        H[H == 0] = 0.1 
         im1 = ax1.imshow(np.flipud(H.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r')#, norm=LogNorm(vmin=np.min(H), vmax=np.max(H)))
     else:
         im1 = ax1.imshow(np.flipud(H.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r', vmin=np.min(H), vmax=np.max(H))
@@ -292,24 +242,17 @@ def CC(mag1, mag2, mag3, mag4, name_mag1, name_mag2, name_mag3, name_mag4, magli
     G, xedges, yedges = np.histogram2d(y, z, bins=200, range=[[-1, 2.2],[-1,2.2]])
     ax2.set_title(f'CCD ({name_mag2} - {name_mag3} x {name_mag3} - {name_mag4})', fontsize=10)
     ax2.set_xlim([-1, 2.2])
-    ax2.set_ylim([-1, 2.2]) 
-    ax2.set_xlabel(f'{name_mag2} - {name_mag3}')#, fontsize=10)
-    ax2.set_ylabel(f'{name_mag3} - {name_mag4}')#, fontsize=10)
+    ax2.set_ylim([-1, 2.2])
+    ax2.set_xlabel(f'{name_mag2} - {name_mag3}', fontsize=10)
+    ax2.set_ylabel(f'{name_mag3} - {name_mag4}', fontsize=10)
     ax2.grid(True, lw=0.2)
     if (mode=='log'):
-        G[G == 0] = 0.1
+        G[G == 0] = 0.1 
         im2 = ax2.imshow(np.flipud(G.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r')#, norm=LogNorm(vmin=np.min(H), vmax=np.max(H)))
     else:
         im2 = ax2.imshow(np.flipud(G.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r', vmin=np.min(H), vmax=np.max(H))
 
     cbaxes = f.add_axes([1.0, 0.3, 0.015, 0.4])
-    cbar = f.colorbar(im1, cax=cbaxes, cmap='gist_ncar_r', orientation='vertical')
+    cbar = f.colorbar(im1, cax=cbaxes, cmap='PuBuGn', orientation='vertical')
     plt.tight_layout()
     del(mag1, mag2, mag3, mag4, name_mag1, name_mag2, name_mag3, name_mag4, mode, maglim)
-
-   
-
-
-
-    
-    
