@@ -257,7 +257,7 @@ class DBManager():
     
     def get_db_table_new(self, table_name, columns,
                          limit = False, indexs = None, column_indexs_name = None,
-                        footprint_table_name = None, sorting_column = None):
+                        footprint_table_name = None, sorting_columns = None):
         """
         Get table from db
 
@@ -276,7 +276,7 @@ class DBManager():
         self.connect_to_production()
         
         if footprint_table_name is not None:
-            query = "select a.%s from %s a inner join %s b on a.%s = b.%s"%(', a.'.join(columns),table_name,footprint_table_name, sorting_column, sorting_column)
+            query = "select a.%s from %s a inner join %s b on a.%s = b.%s"%(', a.'.join(columns),table_name,footprint_table_name, sorting_columns[0], sorting_columns[1])
             print(query,'\n')
         elif indexs is not None:
             sorting_indexs = '('+','.join(str(each) for each in indexs)+')'
@@ -300,7 +300,7 @@ class DBManager():
         )
     
     def table_loading(self,pid, ntable, columns = None, limit = False,verbose = False,
-                  indexs = None, column_indexs_name = None, footprint_table_name = None, sorting_column = None):
+                  indexs = None, column_indexs_name = None, footprint_table_name = None, sorting_columns = None):
         ''' Assign a table from a especific process to a variable.The rows and columns of the table can be
             altered according to the args options.
 
@@ -331,7 +331,7 @@ class DBManager():
 
         table = self.get_db_table_new(table_name, columns, 
                                      limit = limit, indexs = indexs, column_indexs_name = column_indexs_name,
-                                     footprint_table_name = footprint_table_name, sorting_column = sorting_column)
+                                     footprint_table_name = footprint_table_name, sorting_columns = sorting_columns)
 
         table_cool = Table(rows=table.T, names=columns)
 
