@@ -46,7 +46,7 @@ def get_vac(pid='6607',
     """
     
     # Connect to database    
-    engine = sqlalchemy.create_engine('postgres://untrustedprod:untrusted@desdb4.linea.gov.br:5432/prod_gavo')
+    engine = sqlalchemy.create_engine('postgresql://untrustedprod:untrusted@desdb4.linea.gov.br:5432/prod_gavo')
     conn = engine.connect()
      
     table_name = f"vac_{vac_schema}.catalog_{pid}"    
