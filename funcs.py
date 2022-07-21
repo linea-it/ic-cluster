@@ -215,8 +215,9 @@ def plot_loop(vacs, x, y, z_low, z_up, color_cut, x_range, y_range, titles, ista
 
     plt.tight_layout()
 
-def CC(mag1, mag2, mag3, mag4, name_mag1, name_mag2, name_mag3, name_mag4, maglim, mode):
-    f, ((ax1, ax2)) = plt.subplots(1, 2, figsize=(8, 8), dpi=150)
+
+def CCD(mag1, mag2, mag3, mag4, name_mag1, name_mag2, name_mag3, name_mag4, maglim):
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(8, 4), dpi=150)
     bright = (mag1 <= maglim)
     mag1 = mag1[bright]
     mag2 = mag2[bright]
@@ -226,33 +227,23 @@ def CC(mag1, mag2, mag3, mag4, name_mag1, name_mag2, name_mag3, name_mag4, magli
     y = mag2-mag3
     z = mag3-mag4
     
-    H, xedges, yedges = np.histogram2d(x, y, bins=200, range=[[-1, 2.2],[-1,2.2]])
-    ax1.set_title(f'CCD ({name_mag1} - {name_mag2} x {name_mag2} - {name_mag3})', fontsize=10)
+    im1 = ax1.hexbin(x, y, None,  mincnt=1, cmap='rainbow', gridsize=[200,100])
+    im2 = ax2.hexbin(z, y, None,  mincnt=1, cmap='rainbow', gridsize=[200,100])
+
     ax1.set_xlim([-1, 2.2])
     ax1.set_ylim([-1, 2.2])
-    ax1.set_xlabel(f'{name_mag1} - {name_mag2}', fontsize=10)
-    ax1.set_ylabel(f'{name_mag2} - {name_mag3}', fontsize=10)
-    ax1.grid(True, lw=0.2)
-    if (mode=='log'):
-        H[H == 0] = 0.1 
-        im1 = ax1.imshow(np.flipud(H.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r')#, norm=LogNorm(vmin=np.min(H), vmax=np.max(H)))
-    else:
-        im1 = ax1.imshow(np.flipud(H.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r', vmin=np.min(H), vmax=np.max(H))
+    ax1.set_xlabel(f'{name_mag1} - {name_mag2}')
+    ax1.set_ylabel(f'{name_mag2} - {name_mag3}')
+    ax1.grid(True)
 
-    G, xedges, yedges = np.histogram2d(y, z, bins=200, range=[[-1, 2.2],[-1,2.2]])
-    ax2.set_title(f'CCD ({name_mag2} - {name_mag3} x {name_mag3} - {name_mag4})', fontsize=10)
     ax2.set_xlim([-1, 2.2])
-    ax2.set_ylim([-1, 2.2])
-    ax2.set_xlabel(f'{name_mag2} - {name_mag3}', fontsize=10)
-    ax2.set_ylabel(f'{name_mag3} - {name_mag4}', fontsize=10)
-    ax2.grid(True, lw=0.2)
-    if (mode=='log'):
-        G[G == 0] = 0.1 
-        im2 = ax2.imshow(np.flipud(G.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r')#, norm=LogNorm(vmin=np.min(H), vmax=np.max(H)))
-    else:
-        im2 = ax2.imshow(np.flipud(G.T), extent=[-1, 2.2, -1, 2.2], aspect='equal', interpolation='None', cmap='gist_ncar_r', vmin=np.min(H), vmax=np.max(H))
+    ax2.set_ylim([-1, 2.2]) 
+    ax2.set_xlabel(f'{name_mag3} - {name_mag4}')
+    ax2.set_ylabel(f'{name_mag2} - {name_mag3}')
+    ax2.grid(True)
+    
+    cbaxes = fig.add_axes([1.0, 0.23, 0.015, 0.7])
+    cbar = fig.colorbar(im1, cax=cbaxes, cmap='rainbow', orientation='vertical')
 
-    cbaxes = f.add_axes([1.0, 0.3, 0.015, 0.4])
-    cbar = f.colorbar(im1, cax=cbaxes, cmap='PuBuGn', orientation='vertical')
+    plt.suptitle('         Color-color diagram', fontsize=15)
     plt.tight_layout()
-    del(mag1, mag2, mag3, mag4, name_mag1, name_mag2, name_mag3, name_mag4, mode, maglim)
