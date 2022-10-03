@@ -1,6 +1,6 @@
-dbmaster = 'postgres://viewer:viewer%40123@dbmaster.linea.gov.br:5432/production'
-dbproduction = 'postgres://untrustedprod:untrusted@desdb4.linea.gov.br:5432/prod_gavo'
-dbtesting = 'postgres://untrusted:untrusted@desdb4.linea.gov.br:5432/gavo'
+dbmaster = 'postgresql://viewer:viewer%40123@dbmaster.linea.gov.br:5432/production'
+dbproduction = 'postgresql://untrustedprod:untrusted@desdb4.linea.gov.br:5432/prod_gavo'
+dbtesting = 'postgresql://untrusted:untrusted@desdb4.linea.gov.br:5432/gavo'
 
 import numpy as np
 import sqlalchemy
